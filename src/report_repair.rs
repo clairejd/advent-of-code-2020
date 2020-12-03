@@ -1,9 +1,9 @@
-/*use std::io::prelude::*;
+use std::io::prelude::*;
 use std::fs::File;
 
-pub fn report_repair() {
+pub fn run(input: &str) {
     // todo: error handling for missing file
-    let mut file = File::open("inputs/1.txt").unwrap();
+    let mut file = File::open(input).unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
         
@@ -36,4 +36,4 @@ pub fn report_repair() {
             break;
         }
     }
-}*/
+}

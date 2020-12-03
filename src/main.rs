@@ -2,11 +2,9 @@
 extern crate clap;
 
 use clap::App;
-//use std::io;
-//use std::io::Read;
-//use std::fs::File;
 
 mod report_repair;
+mod password_philosophy;
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
@@ -14,14 +12,11 @@ fn main() {
 
     // Calling .unwrap() is safe here because "INPUT" is required (if "INPUT" wasn't
     // required we could have used an 'if let' to conditionally get the value)
-    println!("Using input file: {}", matches.value_of("INPUT").unwrap());
-
-    // Vary the output based on how many times the user used the "verbose" flag
-    // (i.e. 'myprog -v -v -v' or 'myprog -vvv' vs 'myprog -v'
-    match matches.occurrences_of("v") {
-        0 => println!("No verbose info"),
-        1 => println!("Some verbose info"),
-        2 => println!("Tons of verbose info"),
-        3 | _ => println!("Don't be crazy"),
+    let input = matches.value_of("input").unwrap();
+    
+    match matches.value_of("program").unwrap() {
+        "report" => report_repair::run(input),
+        "password" => password_philosophy::run(input),
+        _ => println!("Bad program number!"),
     }
 }
