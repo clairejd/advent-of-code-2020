@@ -1,0 +1,14 @@
+name: Advent of Code 2020 runner
+version: "0.2"
+author: Claire Durant <clairedurant322@gmail.com>
+args:
+    - program:
+        help: Sets the program to run
+        required: true
+    - input:
+        help: Sets the input file to use
+        required: true
+    - verbose:
+        short: v
+        multiple: true
+        help: Sets the level of verbosity
