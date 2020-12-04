@@ -3,8 +3,9 @@ extern crate clap;
 
 use clap::App;
 
-mod report_repair;
 mod password_philosophy;
+mod report_repair;
+mod toboggan_trajectory;
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
@@ -17,6 +18,7 @@ fn main() {
     match matches.value_of("program").unwrap() {
         "report" => report_repair::run(input),
         "password" => password_philosophy::run(input),
+        "toboggan" => toboggan_trajectory::run(input),
         _ => println!("Bad program number!"),
     }
 }
