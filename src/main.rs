@@ -3,6 +3,7 @@ extern crate clap;
 
 use clap::App;
 
+mod passport_processing;
 mod password_philosophy;
 mod report_repair;
 mod toboggan_trajectory;
@@ -16,9 +17,10 @@ fn main() {
     let input = matches.value_of("input").unwrap();
     
     match matches.value_of("program").unwrap() {
-        "report" => report_repair::run(input),
+        "report"   => report_repair::run(input),
         "password" => password_philosophy::run(input),
         "toboggan" => toboggan_trajectory::run(input),
+        "passport" => passport_processing::run(input),
         _ => println!("Bad program number!"),
     }
 }
