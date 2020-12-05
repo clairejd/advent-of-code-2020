@@ -3,6 +3,7 @@ extern crate clap;
 
 use clap::App;
 
+mod binary_boarding;
 mod passport_processing;
 mod password_philosophy;
 mod report_repair;
@@ -17,6 +18,7 @@ fn main() {
     let input = matches.value_of("input").unwrap();
     
     match matches.value_of("program").unwrap() {
+        "binary"   => binary_boarding::run(input),
         "report"   => report_repair::run(input),
         "password" => password_philosophy::run(input),
         "toboggan" => toboggan_trajectory::run(input),
