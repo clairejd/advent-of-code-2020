@@ -29,10 +29,18 @@ impl BoardingPass {
     // Get the row number based on this pass's row directions
     pub fn get_row(&self) -> u32 {
         // total number of rows on the plane
-        let TOTAL_ROWS: u32 = 2_u32.pow(ROW_PARTITIONS as u32);
+        let total_rows: u32 = 2_u32.pow(ROW_PARTITIONS as u32);
         // use binary partition search to get the actual row number
-        get_row_recurse(self, 0, 0, TOTAL_ROWS);
+        self.get_row_recurse(0, 0, total_rows);
     }
+
+    // Get the column number based on this pass's column directions
+    pub fn get_col(&self) -> u32 {
+        // total number of columns on the plane
+        let total_cols: u32 = 2_u32.pow(COL_PARTITIONS as u32);
+        get_col_recurse(self, 0, total_cols);
+    }
+
 
     // use binary partition search to get the actual row number
     // dir_ix:  the array index of self.row_directions to query to determine
@@ -41,25 +49,86 @@ impl BoardingPass {
     // max_row: the maximum row of the current partition
     fn get_row_recurse(&self, dir_ix: u32, min_row: u32, max_row: u32) -> u32 {
         match (max_row - min_row) {
+
             // if there is only a difference of 1 between max and min, we've
             //   reached the end of our recursion. use the last row direction to
-            //   return the row number
-            1 => ,
-            // else, use the direction at this index to determine whgeterh
-            _
+            //   return the appropriate row number
+            1 => {
+                if let Some(dir) = self.row_directions[dir_ix] {
+                    match (dir) {
+                        RowPartition::Front => return min_row,
+                        RowPartition::Back  => return max_row,
+                    }
+                }
+            },
+
+            // else, use the direction at this index to determine whether to go
+            //  forward or backward
+            _ => {
+                if let Some(dir) = self.row_directions[dir_ix] {
+                    // depending on the direction that we have to go in, we will
+                    //   be setting a new min/max row number to send to the next
+                    //   recursive call to this function.
+                    let mut new_min_row = min_row;
+                    let mut new_max_row = max_row;
+                    // we also need to advance to the next direction index.
+                    let new_dir_ix = dir_ix + 1;
+                    
+                    // calculate the midpoint between the two current rows.
+                    // if we go to the front, the midpoint is our new max row.
+                    // if we go to the back, the midpoint is our new min row.
+                    let midpoint = (min_row + max_row) / 2;
+                    match (dir) {
+                        RowPartition::Front => new_max_row = midpoint,
+                        RowPartition::Back  => new_min_row = midpoint,
+                    }
+
+                    return self.get_row_recurse(new_dir_ix, new_min_row, new_max_row);
+                }
+            }
         }
     }
 
-    // Get the column number based on this pass's column directions
-    pub fn get_col(&self) -> u32 {
-        // total number of columns on the plane
-        let TOTAL_COLS: u32 = 2_u32.pow(COL_PARTITIONS as u32);
-        get_col_recurse(self, 0, TOTAL_COLS);
-    }
+    fn get_col_recurse(&self, dir_ix: u32, min_col: u32, max_col: u32) -> u32 {
+        match (max_col - min_col) {
 
-    // use binary partition search to get the actual column number
-    fn get_col_recurse(&self, max_row: u32) -> u32 {
+            // if there is only a difference of 1 between max and min, we've
+            //   reached the end of our recursion. use the last col direction to
+            //   return the appropriate col number
+            1 => {
+                if let Some(dir) = self.col_directions[dir_ix] {
+                    match (dir) {
+                        ColumnPartition::Left  => return min_col,
+                        ColumnPartition::Right => return max_col,
+                    }
+                }
+            },
 
+            // else, use the direction at this index to determine whether to go
+            //  forward or backward
+            _ => {
+                if let Some(dir) = self.col_directions[dir_ix] {
+                    // depending on the direction that we have to go in, we will
+                    //   be setting a new min/max col number to send to the next
+                    //   recursive call to this function.
+                    let mut new_min_col = min_col;
+                    let mut new_max_col = max_col;
+                    // we also need to advance to the next direction index.
+                    let new_dir_ix = dir_ix + 1;
+                    
+                    // calculate the midpoint between the two current cols.
+                    // if we go to the front, the midpoint is our new max col.
+                    // if we go to the back, the midpoint is our new min col.
+                    let midpoint = (min_col + max_col) / 2;
+                    match (dir) {
+                        ColumnPartition::Left  => new_max_col = midpoint,
+                        ColumnPartition::Right => new_min_col = midpoint,
+                    }
+
+                    return self.get_col_recurse(new_dir_ix, new_min_col, new_max_col);
+                }
+            }
+        }
     }
 }
 
@@ -128,10 +197,13 @@ fn build_boarding_passes(input: &str) -> Vec<BoardingPass> {
 fn build_seats(passes: &Vec<BoardingPass>) -> Vec<Seat> {
     let mut seats: Vec<Seat> = Vec::new();
     for pass in boarding_passes.iter() {
-        seats.push(Seat { 
-            row: 
+        seats.push(Seat {
+            row: pass.get_row(),
+            col: pass.get_col(),
         });
     }
+
+    return seats;
 }
 
 pub fn run(input: &str) {
