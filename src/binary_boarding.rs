@@ -29,16 +29,16 @@ impl BoardingPass {
     // Get the row number based on this pass's row directions
     pub fn get_row(&self) -> u32 {
         // total number of rows on the plane
-        let total_rows: u32 = 2_u32.pow(ROW_PARTITIONS as u32);
+        let total_rows: u32 = 2_u32.pow(ROW_PARTITIONS as u32) - 1;
         // use binary partition search to get the actual row number
-        self.get_row_recurse(0, 0, total_rows);
+        return self.get_row_recurse(0, 0, total_rows);
     }
 
     // Get the column number based on this pass's column directions
     pub fn get_col(&self) -> u32 {
         // total number of columns on the plane
-        let total_cols: u32 = 2_u32.pow(COL_PARTITIONS as u32);
-        get_col_recurse(self, 0, total_cols);
+        let total_cols: u32 = 2_u32.pow(COL_PARTITIONS as u32) - 1;
+        return self.get_col_recurse(0, 0, total_cols);
     }
 
 
@@ -47,18 +47,20 @@ impl BoardingPass {
     //          whether to go forward or backward
     // min_row: the minimum row of the current partition
     // max_row: the maximum row of the current partition
-    fn get_row_recurse(&self, dir_ix: u32, min_row: u32, max_row: u32) -> u32 {
-        match (max_row - min_row) {
-
+    fn get_row_recurse(&self, dir_ix: usize, min_row: u32, max_row: u32) -> u32 {
+        match max_row - min_row {
             // if there is only a difference of 1 between max and min, we've
             //   reached the end of our recursion. use the last row direction to
             //   return the appropriate row number
             1 => {
                 if let Some(dir) = self.row_directions[dir_ix] {
-                    match (dir) {
+                    match dir {
                         RowPartition::Front => return min_row,
                         RowPartition::Back  => return max_row,
                     }
+                } else {
+                    println!("No direction for index {}", dir_ix);
+                    return 0;
                 }
             },
 
@@ -78,36 +80,41 @@ impl BoardingPass {
                     // if we go to the front, the midpoint is our new max row.
                     // if we go to the back, the midpoint is our new min row.
                     let midpoint = (min_row + max_row) / 2;
-                    match (dir) {
+                    match dir {
                         RowPartition::Front => new_max_row = midpoint,
-                        RowPartition::Back  => new_min_row = midpoint,
+                        RowPartition::Back  => new_min_row = midpoint + 1,
                     }
 
                     return self.get_row_recurse(new_dir_ix, new_min_row, new_max_row);
+                } else {
+                    println!("Error: got no direction for index {}!", dir_ix);
+                    return 0;
                 }
             }
         }
     }
 
-    fn get_col_recurse(&self, dir_ix: u32, min_col: u32, max_col: u32) -> u32 {
-        match (max_col - min_col) {
-
+    fn get_col_recurse(&self, dir_ix: usize, min_col: u32, max_col: u32) -> u32 {
+        match max_col - min_col {
             // if there is only a difference of 1 between max and min, we've
             //   reached the end of our recursion. use the last col direction to
             //   return the appropriate col number
             1 => {
-                if let Some(dir) = self.col_directions[dir_ix] {
-                    match (dir) {
+                if let Some(dir) = self.column_directions[dir_ix] {
+                    match dir {
                         ColumnPartition::Left  => return min_col,
                         ColumnPartition::Right => return max_col,
                     }
+                } else {
+                    println!("No direction for index {}", dir_ix);
+                    return 0;
                 }
             },
 
             // else, use the direction at this index to determine whether to go
             //  forward or backward
             _ => {
-                if let Some(dir) = self.col_directions[dir_ix] {
+                if let Some(dir) = self.column_directions[dir_ix] {
                     // depending on the direction that we have to go in, we will
                     //   be setting a new min/max col number to send to the next
                     //   recursive call to this function.
@@ -120,12 +127,15 @@ impl BoardingPass {
                     // if we go to the front, the midpoint is our new max col.
                     // if we go to the back, the midpoint is our new min col.
                     let midpoint = (min_col + max_col) / 2;
-                    match (dir) {
+                    match dir {
                         ColumnPartition::Left  => new_max_col = midpoint,
-                        ColumnPartition::Right => new_min_col = midpoint,
+                        ColumnPartition::Right => new_min_col = midpoint + 1,
                     }
 
                     return self.get_col_recurse(new_dir_ix, new_min_col, new_max_col);
+                } else {
+                    println!("Error: got no direction for index {}!", dir_ix);
+                    return 0;
                 }
             }
         }
@@ -138,10 +148,6 @@ struct Seat {
 }
 
 impl Seat {
-    fn new(row: u32, col: u32) -> Seat {
-        Seat { row: row, col: col }
-    }
-
     fn get_seat_id(&self) -> u32 {
         (self.row * 8) + self.col
     }
@@ -196,7 +202,7 @@ fn build_boarding_passes(input: &str) -> Vec<BoardingPass> {
 // Construct and return a vec of Seat structs from the input boarding pass vec
 fn build_seats(passes: &Vec<BoardingPass>) -> Vec<Seat> {
     let mut seats: Vec<Seat> = Vec::new();
-    for pass in boarding_passes.iter() {
+    for pass in passes.iter() {
         seats.push(Seat {
             row: pass.get_row(),
             col: pass.get_col(),
@@ -214,4 +220,7 @@ pub fn run(input: &str) {
 
     let boarding_passes = build_boarding_passes(&contents);
     let seats = build_seats(&boarding_passes);
+    if let Some(max_seat_id) = seats.iter().map(|seat| seat.get_seat_id()).max() {
+        println!("Max seat ID: {}", max_seat_id);
+    }
 }
