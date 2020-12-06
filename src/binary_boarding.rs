@@ -25,6 +25,59 @@ struct BoardingPass {
     column_directions: [Option<ColumnPartition>; COL_PARTITIONS],
 }
 
+impl BoardingPass {
+    // Get the row number based on this pass's row directions
+    pub fn get_row(&self) -> u32 {
+        // total number of rows on the plane
+        let TOTAL_ROWS: u32 = 2_u32.pow(ROW_PARTITIONS as u32);
+        // use binary partition search to get the actual row number
+        get_row_recurse(self, 0, 0, TOTAL_ROWS);
+    }
+
+    // use binary partition search to get the actual row number
+    // dir_ix:  the array index of self.row_directions to query to determine
+    //          whether to go forward or backward
+    // min_row: the minimum row of the current partition
+    // max_row: the maximum row of the current partition
+    fn get_row_recurse(&self, dir_ix: u32, min_row: u32, max_row: u32) -> u32 {
+        match (max_row - min_row) {
+            // if there is only a difference of 1 between max and min, we've
+            //   reached the end of our recursion. use the last row direction to
+            //   return the row number
+            1 => ,
+            // else, use the direction at this index to determine whgeterh
+            _
+        }
+    }
+
+    // Get the column number based on this pass's column directions
+    pub fn get_col(&self) -> u32 {
+        // total number of columns on the plane
+        let TOTAL_COLS: u32 = 2_u32.pow(COL_PARTITIONS as u32);
+        get_col_recurse(self, 0, TOTAL_COLS);
+    }
+
+    // use binary partition search to get the actual column number
+    fn get_col_recurse(&self, max_row: u32) -> u32 {
+
+    }
+}
+
+struct Seat {
+    row: u32,
+    col: u32,
+}
+
+impl Seat {
+    fn new(row: u32, col: u32) -> Seat {
+        Seat { row: row, col: col }
+    }
+
+    fn get_seat_id(&self) -> u32 {
+        (self.row * 8) + self.col
+    }
+}
+
 // Construct and return a vec of BoardingPass structs from the input string
 fn build_boarding_passes(input: &str) -> Vec<BoardingPass> {
     let mut passes: Vec<BoardingPass> = Vec::new();
@@ -71,15 +124,22 @@ fn build_boarding_passes(input: &str) -> Vec<BoardingPass> {
     return passes;
 }
 
-pub fn run(input: &str) {
-    // total number of rows and columns on the plane
-    let TOTAL_ROWS: u32 = 2_u32.pow(ROW_PARTITIONS as u32);
-    let TOTAL_COLS: u32 = 2_u32.pow(COL_PARTITIONS as u32);
+// Construct and return a vec of Seat structs from the input boarding pass vec
+fn build_seats(passes: &Vec<BoardingPass>) -> Vec<Seat> {
+    let mut seats: Vec<Seat> = Vec::new();
+    for pass in boarding_passes.iter() {
+        seats.push(Seat { 
+            row: 
+        });
+    }
+}
 
+pub fn run(input: &str) {
     // todo: error handling for missing file
     let mut file = File::open(input).unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
 
     let boarding_passes = build_boarding_passes(&contents);
+    let seats = build_seats(&boarding_passes);
 }
