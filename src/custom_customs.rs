@@ -26,15 +26,13 @@ struct AnswerGroup {
 
 impl AnswerGroup {
     // get_combined_affirmative_answers returns the total number of questions
-    //  that anyone in this group answered yes to.
-    // if more than one person answered yes to question X, then question X is
-    //  only counted once for this total
+    //  that everyone in this group answered yes to.
     pub fn get_combined_affirmative_answers(&self) -> u32 {
-        let mut combined_answers: [bool; NUMBER_OF_QUESTIONS] = [false; NUMBER_OF_QUESTIONS];
+        let mut combined_answers: [bool; NUMBER_OF_QUESTIONS] = [true; NUMBER_OF_QUESTIONS];
         for person in self.personal_answers.iter() {
             for (ix, answer) in person.iter().enumerate() {
-                if *answer == true {
-                    combined_answers[ix] = true;
+                if *answer == false {
+                    combined_answers[ix] = false;
                 }
             }
         }
