@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::io::prelude::*;
 use std::fs::File;
 use std::process;
@@ -142,6 +143,7 @@ impl BoardingPass {
     }
 }
 
+#[derive(Eq)]
 struct Seat {
     row: u32,
     col: u32,
@@ -150,6 +152,24 @@ struct Seat {
 impl Seat {
     fn get_seat_id(&self) -> u32 {
         (self.row * 8) + self.col
+    }
+}
+
+impl PartialEq for Seat {
+    fn eq(&self, other: &Self) -> bool {
+        self.get_seat_id() == other.get_seat_id()
+    }
+}
+
+impl PartialOrd for Seat {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Seat {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.get_seat_id().cmp(&other.get_seat_id())
     }
 }
 
@@ -219,8 +239,35 @@ pub fn run(input: &str) {
     file.read_to_string(&mut contents).unwrap();
 
     let boarding_passes = build_boarding_passes(&contents);
-    let seats = build_seats(&boarding_passes);
-    if let Some(max_seat_id) = seats.iter().map(|seat| seat.get_seat_id()).max() {
-        println!("Max seat ID: {}", max_seat_id);
+    let mut seats = build_seats(&boarding_passes);
+    
+    // sort the seats by seat ID
+    seats.sort_unstable();
+
+    // we have to find the missing seat.
+    // the first few seats are known to be missing, but we don't know exactly
+    //   how many
+    // so, start by examining the first seat in the vec, and try to find the
+    //   missing id from there
+    let mut current_seat_id = match seats.first() {
+        Some(seat) => seat.get_seat_id(),
+        None => {
+            println!("Error; no first seat found!");
+            0
+        },
+    };
+
+    println!("First seat ID: {}", current_seat_id);
+    
+    // start at index 1 because we already know the first seat ID
+    for seat_id in seats[1..].iter().map(|seat| seat.get_seat_id()) {
+        println!("Seat ID: {}", seat_id);
+        // if this seat isn't the current ID + 1, we know that currentID+1 is
+        //   the missing seat number
+        if seat_id != current_seat_id + 1 {
+            println!("My seat ID is {}", current_seat_id + 1);
+            break;
+        }
+        current_seat_id = seat_id;
     }
 }
