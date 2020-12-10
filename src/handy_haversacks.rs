@@ -21,9 +21,9 @@ use std::io::{BufRead, BufReader};
 /******************************************************************************/
 /* Constant definitions                                                       */
 /******************************************************************************/
-// GOAL_COLOR: the color of your bag. The goal of the program is to determine
+// MY_BAG_COLOR: the color of your bag. The goal of the program is to determine
 //             how many bag colors could eventually contain your bag color
-const GOAL_COLOR: &str = "shiny gold";
+const MY_BAG_COLOR: &str = "shiny gold";
 
 /******************************************************************************/
 /* Structure definitions                                                      */
@@ -154,6 +154,20 @@ fn build_bag_tree(rules: &Vec<Bag>) -> (Graph<String, u32>, HashMap<String, Node
     return (bag_graph, bag_nodes);
 }
 
+// recursively get the number of child (grandchild, etc) bags contained in the passed-in bag node
+fn get_child_bag_count(bag_graph: &Graph<String, u32>, my_bag_node: &NodeIndex) -> u32 {
+    println!("Recursing");
+    let mut count = 1;
+
+    let neighbors = bag_graph.neighbors(*my_bag_node);
+    for neighbor in neighbors {
+        let edge = bag_graph.find_edge(*my_bag_node, neighbor).unwrap();
+        count += bag_graph.edge_weight(edge).unwrap() * get_child_bag_count(bag_graph, &neighbor);
+    }
+    
+    return count;
+}
+
 
 /******************************************************************************/
 /* Main routine                                                               */
@@ -169,16 +183,22 @@ pub fn run(input: &str) {
     let bag_nodes = bag_graph_rtn.1;
 
     let mut paths_to_goal = 0;
-    let goal_node = bag_nodes.get(GOAL_COLOR).unwrap();
+    let my_bag_node = bag_nodes.get(MY_BAG_COLOR).unwrap();
 
     for start_node in bag_nodes.values() {
         // don't count the goal -> goal case as a path
-        if start_node == goal_node {
+        if start_node == my_bag_node {
             continue;
         }
-        if has_path_connecting(&bag_graph, *start_node, *goal_node, None) {
+        if has_path_connecting(&bag_graph, *start_node, *my_bag_node, None) {
             paths_to_goal += 1;
         }
     }
-    println!("Paths to goal: {}", paths_to_goal);
+    println!("Paths to goal (part 1 solution): {}", paths_to_goal);
+
+    // perform a depth-first search from my bag to get the total number of bags
+    //  that must be inside it
+    // have to subtract one from the result; don't count my own bag
+    let my_bag_contents = get_child_bag_count(&bag_graph, my_bag_node) - 1;
+    println!("Number of bags inside my bag (part 2): {}", my_bag_contents);
 }
