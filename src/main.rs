@@ -5,6 +5,7 @@ use clap::App;
 
 mod binary_boarding;
 mod custom_customs;
+mod handheld_halting;
 mod handy_haversacks;
 mod passport_processing;
 mod password_philosophy;
@@ -21,6 +22,7 @@ fn main() {
     
     match matches.value_of("program").unwrap() {
         "binary"   => binary_boarding::run(input),
+        "handheld" => handheld_halting::run(input),
         "handy"    => handy_haversacks::run(input),
         "custom"   => custom_customs::run(input),
         "report"   => report_repair::run(input),
