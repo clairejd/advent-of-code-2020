@@ -125,17 +125,11 @@ fn parse_input(input: &str) -> Result<Vec<Instruction>, Box<dyn Error>> {
     Ok(instructions)
 }
 
-/******************************************************************************/
-/* Main routine                                                               */
-/******************************************************************************/
-pub fn run(input: &str) {
-    // parse input file and build a vec of instructions
-    let instructions: Vec<Instruction> = parse_input(input).unwrap();
-
+pub fn run_machine(input: Vec<Instruction>) -> Option<i32> {
     // pair each instruction with a bool representing if the instruction has been
     //   visited or not.
     let mut visited_instrs: Vec<(Instruction, bool)> = Vec::new();
-    for instr in instructions.iter() {
+    for instr in input.iter() {
         visited_instrs.push((*instr, false));
     }
 
@@ -146,10 +140,7 @@ pub fn run(input: &str) {
     while instruction_index < visited_instrs.len() {
         let mut instr = visited_instrs.get_mut(instruction_index).unwrap();
         match instr.1 {
-            true => {
-                println!("Found the loop! Accumulator value: {}, index: {}", accumulator, instruction_index);
-                break;
-            }
+            true => return None,
             false => {
                 match instr.0.opcode {
                     Operation::Acc => {
@@ -176,6 +167,60 @@ pub fn run(input: &str) {
         }
     }
 
-    // exited the loop.
-    println!("Accumulator value: {}", accumulator);
+    // if we made it here, there was no loop in the machine;
+    //   the machine halted successfully.
+    // return the accumulator value
+    return Some(accumulator);
+}
+
+/******************************************************************************/
+/* Main routine                                                               */
+/******************************************************************************/
+pub fn run(input: &str) {
+    // parse input file and build a vec of instructions
+    let instructions: Vec<Instruction> = parse_input(input).unwrap();
+
+    loop {
+        // create a mutable copy of the instructions so we can modify one
+        let mut modified_instructions = instructions.clone();
+        for instr in modified_instructions {
+            match instr.opcode {
+                // if the operation is an Acc, continue... all Accs are correct instructions
+                Operation::Acc => continue,
+    
+                // if it's a Jmp, convert it to a Nop and run the machine
+                Operation::Jmp => {
+                    instr.opcode = Operation::Nop;
+                    let accumulator = run_machine(instructions);
+                    match accumulator {
+                        Some(result) => {
+                            println!("Found result! {}", result);
+                            break;
+                        },
+                        None => {
+                            // turn instruction back into a Jmp
+                            instr.opcode = Operation::Jmp;
+                        }
+                    }
+                },
+                
+                // if it's a Nop, convert it to a Jmp and run the machine
+                Operation::Nop => {
+                    instr.opcode = Operation::Jmp;
+                    let accumulator = run_machine(instructions);
+                    match accumulator {
+                        Some(result) => {
+                            println!("Found result! {}", result);
+                            break;
+                        },
+                        None => {
+                            // turn instruction back into a Nop
+                            instr.opcode = Operation::Nop;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
